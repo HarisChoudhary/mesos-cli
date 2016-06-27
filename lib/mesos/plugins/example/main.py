@@ -21,6 +21,7 @@ class Example(PluginBase):
     COMMANDS = {
         "echo" : {
             "arguments" : ["[<args>...]"],
+            "flags" : {},
             "short_help" : "Echo back all arguments passed to this command.",
             "long_help"  : """\
                 This command mimics the basic functionality provided by 'echo'

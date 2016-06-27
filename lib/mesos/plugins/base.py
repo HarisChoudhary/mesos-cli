@@ -36,10 +36,10 @@ SUBCOMMAND_USAGE = \
 Usage:
   mesos {plugin} {command} (-h | --help)
   mesos {plugin} {command} --version
-  mesos {plugin} {command} {arguments}
+  mesos {plugin} {command} {arguments} [options]
 
 Options:
-  -h --help  Show this screen.
+{flags}
 
 Description:
 {long_help}
@@ -120,22 +120,24 @@ class PluginBase():
         argv = arguments["<args>"]
 
         if cmd in self.COMMANDS.keys():
-            argument_format, short_help, long_help = \
-                mesos.util.format_subcommands_help(self.COMMANDS[cmd])
+            if "external" not in self.COMMANDS[cmd]:
+                argument_format, short_help, long_help, flag_format = \
+                    mesos.util.format_subcommands_help(self.COMMANDS[cmd])
 
-            usage = SUBCOMMAND_USAGE.format(
-                plugin=self.PLUGIN_NAME,
-                command=cmd,
-                arguments=argument_format,
-                short_help=short_help,
-                long_help=long_help)
+                usage = SUBCOMMAND_USAGE.format(
+                    plugin=self.PLUGIN_NAME,
+                    command=cmd,
+                    arguments=argument_format,
+                    flags=flag_format,
+                    short_help=short_help,
+                    long_help=long_help)
 
-            arguments = docopt(
-                usage,
-                argv=argv,
-                program="mesos " + self.PLUGIN_NAME + " " + cmd,
-                version=self.VERSION,
-                options_first=True)
+                arguments = docopt(
+                    usage,
+                    argv=argv,
+                    program="mesos " + self.PLUGIN_NAME + " " + cmd,
+                    version=self.VERSION,
+                    options_first=True)
 
             self.__setup__(cmd, argv)
             getattr(self, cmd.replace("-", "_"))(arguments)
