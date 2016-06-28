@@ -8,7 +8,8 @@ PROJECT_DIR = os.path.join(os.path.dirname(__file__), os.pardir)
 # paths point to builtin plugins. Others are pulled from the
 # 'MESOS_CLI_PLUGIN_PATH' environment variable.
 MESOS_CLI_PLUGINS = [
-    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "example")
+    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "example"),
+    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "container")
 ]
 if os.environ.get('MESOS_CLI_PLUGINS'):
     MESOS_CLI_PLUGINS += \
