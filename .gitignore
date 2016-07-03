@@ -7,3 +7,7 @@ __pycache__/
 
 .DS_Store
 
+.libs/
+
+lib/mesos/plugins/cluster/mesos-execute
+lib/mesos/plugins/container/cli-helper
