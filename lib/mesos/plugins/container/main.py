@@ -138,6 +138,39 @@ List images present in the Docker/Appc store on the agent
                 print "Failed to mount %s namespace" % namespace
                 sys.exit(1)
 
+    # Checks if call is for local agent or should we treat as a remote agent
+    def check_remote(self,addr):
+        addr = addr.split(":")[0]
+        process = subprocess.Popen("ifconfig | grep 'inet '", shell=True,
+                                                    stdout=subprocess.PIPE)
+        output = process.communicate()[0].split('\n')
+        ip_addr = []
+        for line in output:
+            if len(line) != 0:
+                ip_addr.append(line.strip().split(' ')[1].split(":")[1])
+
+        if addr in ip_addr:
+            return False
+
+        return True
+
+    # Executes command on remote node
+    def remote_command(self, cmd, flags, addr, id_commands):
+        command = "mesos container "+cmd+" --addr="+addr+" "+flags
+        for elem in id_commands:
+            command += " "+ elem
+
+        ssh_keys = config.SSH_KEYS;
+        target_ip = addr.split(":")[0]
+        if target_ip in ssh_keys:
+            subprocess.call(["ssh","-i",ssh_keys[target_ip],"-tt","-o",
+                                        "LogLevel=QUIET",target_ip,command])
+        else:
+            subprocess.call(["ssh","-tt","-o","LogLevel=QUIET",target_ip,
+                                                                command])
+
+        return
+
     # Helper function to parse container images from file
     def parse_images(self,text):
         result = ""
@@ -219,6 +252,10 @@ List images present in the Docker/Appc store on the agent
         return pid
 
     def ps(self,argv):
+        if self.check_remote(argv["--addr"]):
+            self.remote_command("ps", "",  argv["--addr"], [])
+            return
+
         container_info = self.hit_endpoint(argv["--addr"], "/containers")
         if len(container_info) == 0:
             print("There are no containers running on this Agent")
@@ -231,12 +268,26 @@ List images present in the Docker/Appc store on the agent
         print(table.to_string())
 
     def execute(self,argv):
+        if self.check_remote(argv["--addr"]):
+            self.remote_command("execute", "",  argv["--addr"],
+                                [argv["<container-ID>"]] + argv["<command>"])
+
         self.check_sudo()
         container_pid = self.get_pid(argv["--addr"],argv["<container-ID>"])
         self.nsenter(container_pid)
         subprocess.call(argv["<command>"])
 
     def logs(self, argv):
+        if self.check_remote(argv["--addr"]):
+            flags = ""
+            if argv["--noStdout"]:
+                flags += "--stdOut"
+            if argv["--noStderr"]:
+                flags += " --noStderr"
+            self.remote_command("logs", flags, argv["--addr"],
+                                            ["<container-ID>"])
+            return
+
         container_pid = self.get_pid(argv["--addr"],argv["<container-ID>"])
         state_info = self.hit_endpoint(argv["--addr"], "/state")
         work_dir = None
@@ -267,10 +318,18 @@ List images present in the Docker/Appc store on the agent
                 print (line)
 
     def top(self, argv):
+        if self.check_remote(argv["--addr"]):
+            self.remote_command("top", "",  argv["--addr"], [])
+            return
+        #Basically ask execute() to do all the work for us
         argv["<command>"]=["ps","-ax"]
         self.execute(argv)
 
     def stats(self, argv):
+        if self.check_remote(argv["--addr"]):
+            print ("This command does not support remote agents")
+            return
+
         self.check_sudo()
         containers = argv["<container-ID>"]
         pids = []
@@ -315,6 +374,10 @@ List images present in the Docker/Appc store on the agent
             return
 
     def images(self, argv):
+        if self.check_remote(argv["--addr"]):
+            self.remote_command("images", "",  argv["--addr"], [])
+            return
+
         self.check_sudo()
         flags = self.hit_endpoint(argv["--addr"],"/flags")
 
