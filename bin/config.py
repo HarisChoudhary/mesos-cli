@@ -11,7 +11,8 @@ MESOS_CLI_PLUGINS = [
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "example"),
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "container"),
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "cluster"),
-    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "agent")
+    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "agent"),
+    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "daemon")
 ]
 if os.environ.get('MESOS_CLI_PLUGINS'):
     MESOS_CLI_PLUGINS += \
