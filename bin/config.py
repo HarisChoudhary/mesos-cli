@@ -37,9 +37,10 @@ if os.environ.get("MESOS_CLI_CONFIG_FILE"):
 
                 if "agent_port" in config_data:
                     if not isinstance(config_data["agent_port"], str):
-                        raise CLIException("'agent_port' field must be a string")
+                        raise CLIException("'agent_port'"
+                                            " field must be a string")
 
-                    AGENT_IP = config_data["agent_port"]
+                    AGENT_PORT = config_data["agent_port"]
 
                 if "plugins" in config_data:
                     if not isinstance(config_data["plugins"], list):
