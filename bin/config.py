@@ -18,8 +18,13 @@ PROJECT_DIR = os.path.join(os.path.dirname(__file__), os.pardir)
 AGENT_IP = "127.0.0.1"
 AGENT_PORT = "5051"
 
+# Default IP for the master.
+MASTER_IP = "127.0.0.1"
+MASTER_PORT = "5050"
+
 # The builtin plugins.
 PLUGINS = [
+    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "cluster"),
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "container"),
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "example")
 ]
@@ -41,6 +46,19 @@ if os.environ.get("MESOS_CLI_CONFIG_FILE"):
                                             " field must be a string")
 
                     AGENT_PORT = config_data["agent_port"]
+
+                if "master_ip" in config_data:
+                    if not isinstance(config_data["master_ip"], str):
+                        raise CLIException("'master_ip' field must be a string")
+
+                    MASTER_IP = config_data["master_ip"]
+
+                if "master_port" in config_data:
+                    if not isinstance(config_data["master_port"], str):
+                        raise CLIException("'master_port'"
+                                            " field must be a string")
+
+                    MASTER_PORT = config_data["master_port"]
 
                 if "plugins" in config_data:
                     if not isinstance(config_data["plugins"], list):
@@ -85,3 +103,9 @@ if os.environ.get("MESOS_PORT"):
 
 if os.environ.get("MESOS_CLI_AGENT_PORT"):
     AGENT_PORT = os.environ.get("MESOS_CLI_AGENT_PORT").strip()
+
+if os.environ.get("MESOS_CLI_MASTER_IP"):
+    MASTER_IP = os.environ.get("MESOS_CLI_MASTER_IP").strip()
+
+if os.environ.get("MESOS_CLI_MASTER_PORT"):
+    MASTER_PORT = os.environ.get("MESOS_CLI_MASTER_PORT").strip()
