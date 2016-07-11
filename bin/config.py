@@ -22,8 +22,12 @@ AGENT_PORT = "5051"
 MASTER_IP = "127.0.0.1"
 MASTER_PORT = "5050"
 
+# Default port for the daemon
+DAEMON_PORT = 5023
+
 # The builtin plugins.
 PLUGINS = [
+    os.path.join(PROJECT_DIR, "lib/mesos/plugins", "daemon"),
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "agent"),
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "cluster"),
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "container"),
