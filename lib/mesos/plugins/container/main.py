@@ -141,6 +141,44 @@ class Container(PluginBase):
                 raise CLIException("Failed to mount '{namespace}' namespace"
                                    .format(namespace=namespace))
 
+    # Checks if call is for local agent or should we treat as a remote agent
+    def __check_remote(self,addr):
+        addr = addr.split(":")[0]
+        try:
+            process = subprocess.Popen("ifconfig | grep 'inet '", shell=True,
+                                                      stdout=subprocess.PIPE)
+            output = process.communicate()[0].split('\n')
+        except Exception as exception:
+            raise CLIException("Could not get set of IP's: {error}"
+                                            .format(error=exception))
+
+        ip_addr = []
+        for line in output:
+            if len(line) != 0:
+                ip_addr.append(line.strip().split(' ')[1].split(":")[1])
+
+        if addr in ip_addr:
+            return False
+
+        return True
+
+    # Executes command on remote node
+    def __remote_command(self, addr, command):
+        ssh_keys = config.SSH_KEYS;
+        target_ip = addr.split(":")[0]
+        try:
+            if target_ip in ssh_keys:
+                subprocess.call(["ssh","-i",ssh_keys[target_ip],"-tt","-o",
+                                            "LogLevel=QUIET",target_ip,command])
+            else:
+                subprocess.call(["ssh","-tt","-o","LogLevel=QUIET",target_ip,
+                                                                    command])
+        except Exception as exception:
+            raise CLIException("Could not SSH onto remote machine: {error}"
+                                                  .format(error=exception))
+
+        return
+
     # Retreives the full container id from a partial container id.
     def __get_container(self, addr, container_id):
         try:
@@ -231,6 +269,17 @@ class Container(PluginBase):
         print(str(table))
 
     def execute(self, argv):
+        try:
+            if self.__check_remote(argv["--addr"]):
+                command = ("sudo mesos container execute {cid} {command}"
+                                  .format(cid=argv["<container-id>"],
+                                          command=" ".join(argv["<command>"])))
+                self.__remote_command(argv["--addr"],command)
+                return
+        except Exception as exception:
+            raise CLIException(("Could not check/execute remote invocation:"
+                                " {error}".format(error=exception)))
+
         self.__verify_root()
 
         try:
