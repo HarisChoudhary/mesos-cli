@@ -22,6 +22,9 @@ AGENT_PORT = "5051"
 MASTER_IP = "127.0.0.1"
 MASTER_PORT = "5050"
 
+# Default set of SSH_KEYS to use for remote agents
+SSH_KEYS = {}
+
 # The builtin plugins.
 PLUGINS = [
     os.path.join(PROJECT_DIR, "lib/mesos/plugins", "agent"),
@@ -80,6 +83,13 @@ if os.environ.get("MESOS_CLI_CONFIG_FILE"):
                                         " field must be a string")
 
                 MASTER_PORT = config_data["master_port"]
+
+            if "ssh_keys" in config_data:
+                if not isinstance(config_data["ssh_keys"], dict):
+                    raise CLIException("'ssh_keys' field must be a dict")
+
+                SSH_KEYS = dict(SSH_KEYS.item() + \
+                                config_data["ssh_keys"].items())
 
             if "plugins" in config_data:
                 if not isinstance(config_data["plugins"], list):
