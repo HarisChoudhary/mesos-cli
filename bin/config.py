@@ -41,45 +41,57 @@ PLUGINS = [
 if os.environ.get("MESOS_CLI_CONFIG_FILE"):
     try:
         with open(os.environ["MESOS_CLI_CONFIG_FILE"]) as data_file:
-            with json.load(data_file) as config_data:
-                if "agent_ip" in config_data:
-                    if not isinstance(config_data["agent_ip"], str):
-                        raise CLIException("'agent_ip' field must be a string")
+            try:
+                config_data = json.load(data_file)
+            except Exception as exception:
+                raise CLIException("Error loading config file as json: {error}"
+                                                    .format(error=exception))
 
-                    AGENT_IP = config_data["agent_ip"]
+            if "agent_ip" in config_data:
+                if not isinstance(config_data["agent_ip"], basestring):
+                    raise CLIException("'agent_ip' field must be a string")
 
-                if "agent_port" in config_data:
-                    if not isinstance(config_data["agent_port"], str):
-                        raise CLIException("'agent_port'"
-                                            " field must be a string")
+                AGENT_IP = config_data["agent_ip"]
 
-                    AGENT_PORT = config_data["agent_port"]
+            if "agent_port" in config_data:
+                if not isinstance(config_data["agent_port"], basestring):
+                    raise CLIException("'agent_port'"
+                                        " field must be a string")
 
-                if "master_ip" in config_data:
-                    if not isinstance(config_data["master_ip"], str):
-                        raise CLIException("'master_ip' field must be a string")
+                AGENT_PORT = config_data["agent_port"]
 
-                    MASTER_IP = config_data["master_ip"]
+            if "master_ip" in config_data:
+                if not isinstance(config_data["master_ip"], basestring):
+                    raise CLIException("'master_ip' field must be a string")
 
-                if "master_port" in config_data:
-                    if not isinstance(config_data["master_port"], str):
-                        raise CLIException("'master_port'"
-                                            " field must be a string")
+                MASTER_IP = config_data["master_ip"]
 
-                    MASTER_PORT = config_data["master_port"]
+            if "master_port" in config_data:
+                if not isinstance(config_data["master_port"], basestring):
+                    raise CLIException("'master_port'"
+                                        " field must be a string")
 
-                if "ssh_keys" in config_data:
-                    if not isinstance(config_data["ssh_keys"], dict):
-                        raise CLIException("'ssh_keys' field must be a dict")
+                MASTER_PORT = config_data["master_port"]
 
-                    SSH_KEYS = dict(SSH_KEYS.item() + \
-                                    config_data["ssh_keys"].items())
+            if "ssh_keys" in config_data:
+                if not isinstance(config_data["ssh_keys"], dict):
+                    raise CLIException("'ssh_keys' field must be a dict")
 
-                if "plugins" in config_data:
-                    if not isinstance(config_data["plugins"], list):
-                        raise CLIException("'plugins' field must be a list")
+                for key, value in config_data["ssh_keys"].iteritems():
+                    if not isinstance(key, basestring):
+                        raise CLIException(("target ssh IP field must be a"
+                                                                " string"))
 
-                    PLUGINS.extend(config_data["plugins"])
+                    if not isinstance(value, basestring):
+                        raise CLIException(("ssh key path must be a string"))
+
+                    SSH_KEYS[key] = value
+
+            if "plugins" in config_data:
+                if not isinstance(config_data["plugins"], list):
+                    raise CLIException("'plugins' field must be a list")
+
+                PLUGINS.extend(config_data["plugins"])
 
     except Exception as exception:
         sys.exit("Unable to parse configuration file '{config}': {error}"
