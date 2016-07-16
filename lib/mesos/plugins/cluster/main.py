@@ -5,7 +5,7 @@ import sys
 import subprocess
 from socket import error as socket_error
 
-import config
+import mesos.config as config
 import mesos.util
 
 from mesos.exceptions import CLIException
@@ -277,7 +277,7 @@ class Cluster(PluginBase):
                     if (task['id'] == argv["<task-ID>"]):
                         self.read(agents[task['slave_id']], task,
                                   argv['<file>'])
-                        sys.exit(0)
+                        return
 
         raise CLIException("Task not found!")
 

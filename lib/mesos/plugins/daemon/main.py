@@ -1,6 +1,6 @@
 from multiprocessing.connection import Client
 
-import config
+import mesos.config as config
 
 from mesos.exceptions import CLIException
 from mesos.plugins import PluginBase
