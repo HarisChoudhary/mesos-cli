@@ -268,7 +268,7 @@ class Container(PluginBase):
 
         print(str(table))
 
-    def execute(self, argv):
+    def execute(self, argv, record=False):
         try:
             if self.__check_remote(argv["--addr"]):
                 command = ("sudo mesos container execute {cid} {command}"
@@ -309,7 +309,11 @@ class Container(PluginBase):
                                        error=str(exception)))
 
         try:
-            subprocess.call(argv["<command>"])
+            if record:
+                output = subprocess.check_output(argv["<command>"])
+                return output
+            else:
+                subprocess.call(argv["<command>"])
         except Exception as exception:
             raise CLIException("Unable to execute command '{command}' for"
                                " container '{container}': {error}"
@@ -362,9 +366,8 @@ class Container(PluginBase):
                 raise CLIException("Unable to read from 'stdout' file: {error}"
                                    .format(error=str(exception)))
 
-        print("=" * 20)
-
         if not argv["--no-stderr"]:
+            print("=" * 20)
             try:
                 stderr_file = os.path.join(executors[0]["directory"], "stderr")
             except Exception as exception:
